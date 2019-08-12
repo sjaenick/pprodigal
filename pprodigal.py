@@ -5,6 +5,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 import subprocess
 import threading
+import sys
 
 def run_prodigal(opts, workDir, currentId, chunkFile):
     cmd = ["prodigal", "-q", "-i", chunkFile.name ]
@@ -84,8 +85,12 @@ def main():
     queryFile = None
     if not opts.input:
         queryFile = "/dev/fd/0"
+        if sys.stdin.isatty():
+            print("Cannot read sequences from STDIN.")
+            exit(1)
     else:
         queryFile = opts.input
+
 
     with open(queryFile, 'r') as fasta:
         for line in fasta:
