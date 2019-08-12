@@ -5,7 +5,6 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 import subprocess
 import threading
-from Bio import SeqIO
 
 def run_prodigal(opts, workDir, currentId, chunkFile):
     cmd = ["prodigal", "-q", "-i", chunkFile.name ]
@@ -88,20 +87,23 @@ def main():
     else:
         queryFile = opts.input
 
-    for record in SeqIO.parse(queryFile, "fasta"):
+    with open(queryFile, 'r') as fasta:
+        for line in fasta:
 
-        if currentFile is None:
-            currentFile = open(workDir.name + "/chunk" + str(currentChunk), 'w')
+            if line[0] == '>' and seqCnt == seqsPerChunk:
+                currentFile.close()
+                executor.submit(run_prodigal, opts, workDir, currentChunk, currentFile)
+                currentFile = None
+                seqCnt = 0
+                currentChunk = currentChunk + 1
 
-        seqCnt = seqCnt + 1
-        currentFile.write(record.format("fasta"))
+            if currentFile is None:
+                currentFile = open(workDir.name + "/chunk" + str(currentChunk), 'w')
 
-        if seqCnt == seqsPerChunk:
-            currentFile.close()
-            executor.submit(run_prodigal, opts, workDir, currentChunk, currentFile)
-            currentFile = None
-            seqCnt = 0
-            currentChunk = currentChunk + 1
+            currentFile.write(line)
+
+            if line[0] == '>':
+                seqCnt = seqCnt + 1
 
     if seqCnt > 0:
         currentFile.close()
