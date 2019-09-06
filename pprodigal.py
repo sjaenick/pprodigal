@@ -3,9 +3,11 @@
 import argparse
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
+from shutil import which
 import subprocess
 import threading
 import sys
+import re
 
 def run_prodigal(opts, workDir, currentId, chunkFile):
     cmd = ["prodigal", "-q", "-i", chunkFile.name ]
@@ -49,7 +51,40 @@ def run_prodigal(opts, workDir, currentId, chunkFile):
     #print(str(cmd))
     subprocess.run(cmd, shell=False, check=True)
 
-def append_file(file, targetFile):
+def append_fasta_file(file, startNum, targetFile):
+    with open(targetFile, "a") as trgt:
+        with open(file, "r") as input:
+            for line in input:
+                if line[0] == '>':
+                    line = re.sub("ID=(\d+)_", "ID="+str(startNum)+"_", line)
+                    startNum = startNum + 1
+                    
+                trgt.write(line)
+    return startNum
+
+def append_gff_file(file, startNum, targetFile):
+    with open(targetFile, "a") as trgt:
+        with open(file, "r") as input:
+            for line in input:
+                if line[0] != '#' and "ID=" in line:
+                    line = re.sub("ID=(\d+)_", "ID="+str(startNum)+"_", line)
+                    startNum = startNum + 1
+                trgt.write(line)
+    return startNum
+
+
+def append_gbk_file(file, startNum, targetFile):
+    with open(targetFile, "a") as trgt:
+        with open(file, "r") as input:
+            for line in input:
+                if line[0] == ' ' and "ID=" in line:
+                    line = re.sub("ID=(\d+)_", "ID="+str(startNum)+"_", line)
+                    startNum = startNum + 1
+                trgt.write(line)
+    return startNum
+
+
+def append_raw_file(file, targetFile):
     with open(targetFile, "a") as trgt:
         with open(file, "r") as input:
             trgt.write(input.read())
@@ -74,7 +109,10 @@ def main():
     if opts.threads and opts.threads < 1:
         raise ValueError
 
-    seqsPerChunk = 5000
+    if which("prodigal") is None:
+        raise ValueError("prodigal not found!")
+
+    seqsPerChunk = 200
     seqCnt = 0
     currentChunk = 1
 
@@ -124,16 +162,25 @@ def main():
     outFile = opts.output
     scoreFile = opts.scorefile
 
+    protIdStart = 1
+    nuclIdStart = 1
+    gffIdStart = 1
+    gbkIdStart = 1
     for cur in range(1, currentChunk + 1):
         if proteinFile:
-            append_file(workDir.name + "/chunk" + str(cur) + ".faa", proteinFile)
+            protIdStart = append_fasta_file(workDir.name + "/chunk" + str(cur) + ".faa", protIdStart, proteinFile)
         if nuclFile:
-            append_file(workDir.name + "/chunk" + str(cur) + ".fna", nuclFile)
+            nuclIdStart = append_fasta_file(workDir.name + "/chunk" + str(cur) + ".fna", nuclIdStart, nuclFile)
         if scoreFile:
-            append_file(workDir.name + "/chunk" + str(cur) + ".score", scoreFile)
+            append_raw_file(workDir.name + "/chunk" + str(cur) + ".score", scoreFile)
 
         if outFile:
-            append_file(workDir.name + "/chunk" + str(cur) + ".out", outFile)
+            if opts.format == "gff":
+                gffIdStart = append_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart, outFile)
+            elif opts.format == "gbk":
+                gbkIdStart = append_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, outFile)
+            else:
+                append_raw_file(workDir.name + "/chunk" + str(cur) + ".out", outFile)
         else:
             with open(workDir.name + "/chunk" + str(cur) + ".out") as out:
                 print(out.read())
