@@ -52,34 +52,42 @@ def run_prodigal(opts, workDir, currentId, chunkFile):
     subprocess.run(cmd, shell=False, check=True)
 
 def append_fasta_file(file, startNum, targetFile):
+    pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
     with open(targetFile, "a") as trgt:
         with open(file, "r") as input:
             for line in input:
                 if line[0] == '>':
-                    line = re.sub("ID=(\d+)_", "ID="+str(startNum)+"_", line)
-                    startNum = startNum + 1
-                    
+                    match = re.match(pattern, line)
+                    if match and match.group(3) == "1":
+                        startNum = startNum + 1
+                    line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
                 trgt.write(line)
     return startNum
 
 def append_gff_file(file, startNum, targetFile):
+    pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
     with open(targetFile, "a") as trgt:
         with open(file, "r") as input:
             for line in input:
                 if line[0] != '#' and "ID=" in line:
-                    line = re.sub("ID=(\d+)_", "ID="+str(startNum)+"_", line)
-                    startNum = startNum + 1
+                    match = re.match(pattern, line)
+                    if match and match.group(3) == "1":
+                        startNum = startNum + 1
+                    line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
                 trgt.write(line)
     return startNum
 
 
 def append_gbk_file(file, startNum, targetFile):
+    pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
     with open(targetFile, "a") as trgt:
         with open(file, "r") as input:
             for line in input:
                 if line[0] == ' ' and "ID=" in line:
-                    line = re.sub("ID=(\d+)_", "ID="+str(startNum)+"_", line)
-                    startNum = startNum + 1
+                    match = re.match(pattern, line)
+                    if match and match.group(3) == "1":
+                        startNum = startNum + 1
+                    line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
                 trgt.write(line)
     return startNum
 
@@ -112,7 +120,7 @@ def main():
     if which("prodigal") is None:
         raise ValueError("prodigal not found!")
 
-    seqsPerChunk = 200
+    seqsPerChunk = 2000
     seqCnt = 0
     currentChunk = 1
 
@@ -162,10 +170,10 @@ def main():
     outFile = opts.output
     scoreFile = opts.scorefile
 
-    protIdStart = 1
-    nuclIdStart = 1
-    gffIdStart = 1
-    gbkIdStart = 1
+    protIdStart = 0
+    nuclIdStart = 0
+    gffIdStart = 0
+    gbkIdStart = 0
     for cur in range(1, currentChunk + 1):
         if proteinFile:
             protIdStart = append_fasta_file(workDir.name + "/chunk" + str(cur) + ".faa", protIdStart, proteinFile)
@@ -177,10 +185,10 @@ def main():
         if outFile:
             if opts.format == "gff":
                 gffIdStart = append_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart, outFile)
-            elif opts.format == "gbk":
-                gbkIdStart = append_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, outFile)
-            else:
+            elif opts.format == "sco":
                 append_raw_file(workDir.name + "/chunk" + str(cur) + ".out", outFile)
+            else:
+                gbkIdStart = append_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, outFile)
         else:
             with open(workDir.name + "/chunk" + str(cur) + ".out") as out:
                 print(out.read())
