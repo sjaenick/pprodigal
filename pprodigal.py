@@ -98,6 +98,37 @@ def append_raw_file(file, targetFile):
             trgt.write(input.read())
 
 
+def print_gff_file(file, startNum):
+    pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
+    with open(file, "r") as input:
+        for line in input:
+            if line[0] != '#' and "ID=" in line:
+                match = re.match(pattern, line)
+                if match and match.group(3) == "1":
+                    startNum = startNum + 1
+                line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
+            print(line)
+    return startNum
+
+
+def print_gbk_file(file, startNum):
+    pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
+    with open(file, "r") as input:
+        for line in input:
+            if line[0] == ' ' and "ID=" in line:
+                match = re.match(pattern, line)
+                if match and match.group(3) == "1":
+                    startNum = startNum + 1
+                line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
+            print(line)
+    return startNum
+
+
+def print_raw_file(file):
+    with open(file, "r") as input:
+        trgt.write(input.read())
+
+
 def main():
     argp=argparse.ArgumentParser(description='Parallel Prodigal gene prediction')
     argp.add_argument('-a', "--proteins", type=str, help="Write protein translations to the selected file.")
@@ -190,8 +221,12 @@ def main():
             else:
                 gbkIdStart = append_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, outFile)
         else:
-            with open(workDir.name + "/chunk" + str(cur) + ".out") as out:
-                print(out.read())
+            if opts.format == "gff":
+                gffIdStart = print_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart)
+            elif opts.format == "sco":
+                print_raw_file(workDir.name + "/chunk" + str(cur) + ".out")
+            else:
+                gbkIdStart = print_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart)
 
 
 if __name__== "__main__":
