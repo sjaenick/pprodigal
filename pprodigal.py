@@ -142,21 +142,33 @@ def main():
     argp.add_argument('-o', "--output", type=str, help="Specify output file (default writes to stdout).")
     argp.add_argument('-p', "--procedure", type=str, help="Select procedure (single or meta).  Default is single.")
     argp.add_argument('-s', "--scorefile", type=str, help="Write all potential genes (with scores) to the selected file.")
-    argp.add_argument('-T', "--threads", type=int, help="number of threads")
+    argp.add_argument('-T', "--tasks", type=int, help="number of prodigal processes to start in parallel (default: 20)")
+    argp.add_argument('-C', "--chunksize", type=int, help="number of input sequences to process within a chunk (default: 2000)")
     opts = argp.parse_args()
 
-    if opts.threads and opts.threads < 1:
-        raise ValueError
+    tasks = 20
+    if opts.tasks is not None:
+        if opts.tasks < 1:
+            raise ValueError
+        tasks = opts.tasks
 
     if which("prodigal") is None:
         raise ValueError("prodigal not found!")
 
+    if opts.chunksize and opts.chunksize < 1:
+        raise ValueError
+
     seqsPerChunk = 2000
+    if opts.chunksize is not None:
+        if opts.chunksize < 1:
+            raise ValueError
+        seqsPerChunk = opts.chunksize
+
     seqCnt = 0
     currentChunk = 1
 
     workDir = tempfile.TemporaryDirectory()
-    executor = ThreadPoolExecutor(max_workers=opts.threads)
+    executor = ThreadPoolExecutor(max_workers=tasks)
     currentFile = open(workDir.name + "/chunk" + str(currentChunk), 'w')
 
     queryFile = None
