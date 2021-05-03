@@ -1,2 +1,2 @@
 # pprodigal
-Python3 wrapper for parallelized gene prediction using Prodigal. It can be used in multiple softwares to improve the speed of gene prediction.
+Python3 wrapper for parallelized gene prediction using Prodigal. It can be used in multiple softwares to improve the speed of gene prediction. With some help from software compareM.
