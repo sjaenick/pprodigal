@@ -9,6 +9,7 @@ import threading
 import sys
 import re
 
+
 def run_prodigal(opts, workDir, currentId, chunkFile):
     cmd = ["prodigal", "-q", "-i", chunkFile.name ]
 
@@ -146,14 +147,19 @@ def main():
     argp.add_argument('-C', "--chunksize", type=int, help="number of input sequences to process within a chunk (default: 2000)")
     opts = argp.parse_args()
 
+    ### check if prodigal installed
+    rc = subprocess.call(['which', 'prodigal'])
+    if rc == 0:
+        print ("wget installed!")
+    else:
+        print ("wget missing in path!")
+
+    ### check if tasks less than 1
     tasks = 20
     if opts.tasks is not None:
         if opts.tasks < 1:
             raise ValueError
         tasks = opts.tasks
-
-    if which("prodigal") is None:
-        raise ValueError("prodigal not found!")
 
     if opts.chunksize and opts.chunksize < 1:
         raise ValueError
