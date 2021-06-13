@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+#### Jianshu Zhao jianshu.zhao@gatech.edu. Modified according to a online version and fixed a lot of bugs
+#### gff format output now is correct. Feel free to contact me if you find any bugs.
+#### usage: python pprodigal.py -i contig.fasta -T 24 -f gff -o contig.gff -p meta
+
+
 import argparse
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -74,7 +79,7 @@ def append_gff_file(file, startNum, targetFile):
                     match = re.match(pattern, line)
                     if match and match.group(3) == "1":
                         startNum = startNum + 1
-                    line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
+                    line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4) + "\n"
                 trgt.write(line)
     return startNum
 
