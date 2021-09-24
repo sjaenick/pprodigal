@@ -73,7 +73,7 @@ def append_gff_file(file, startNum, targetFile):
                     match = re.match(pattern, line)
                     if match and match.group(3) == "1":
                         startNum = startNum + 1
-                    line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
+                    line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4) + "\n"
                 trgt.write(line)
     return startNum
 
