@@ -93,10 +93,19 @@ def append_gbk_file(file, startNum, targetFile):
     return startNum
 
 
-def append_raw_file(file, targetFile):
+def append_raw_file(file, targetFile, seqnumStart):
+    pattern = re.compile(r"(.*)seqnum=(\d+)(.*)")
     with open(targetFile, "a") as trgt:
         with open(file, "r") as input:
-            trgt.write(input.read())
+            for line in input:
+                line = line.rstrip("\n")
+                if "seqnum=" in line:
+                    match = re.match(pattern, line)
+                    seqnumStart = seqnumStart + 1
+                    line = match.group(1) + "seqnum=" + str(seqnumStart) + match.group(3)
+                trgt.write(line + "\n")
+    return seqnumStart
+
 
 
 def print_gff_file(file, startNum):
@@ -250,13 +259,13 @@ def main():
         if nuclFile:
             nuclIdStart = append_fasta_file(workDir.name + "/chunk" + str(cur) + ".fna", nuclIdStart, nuclFile)
         if scoreFile:
-            append_raw_file(workDir.name + "/chunk" + str(cur) + ".score", scoreFile)
+            seqnumStart = append_raw_file(workDir.name + "/chunk" + str(cur) + ".score", scoreFile, seqnumStart)
 
         if outFile:
             if opts.format == "gff":
                 gffIdStart = append_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart, outFile)
             elif opts.format == "sco":
-                append_raw_file(workDir.name + "/chunk" + str(cur) + ".out", outFile)
+                seqnumStart = append_raw_file(workDir.name + "/chunk" + str(cur) + ".out", outFile, seqnumStart)
             else:
                 gbkIdStart = append_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, outFile)
         else:
