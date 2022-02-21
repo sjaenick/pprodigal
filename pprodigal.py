@@ -125,9 +125,17 @@ def print_gbk_file(file, startNum):
     return startNum
 
 
-def print_raw_file(file):
+def print_raw_file(file, seqnumStart):
+    pattern = re.compile(r"(.*)seqnum=(\d+)(.*)")
     with open(file, "r") as input:
-        print(input.read())
+        for line in input:
+            line = line.rstrip("\n")
+            if "seqnum=" in line:
+                match = re.match(pattern, line)
+                seqnumStart = seqnumStart + 1
+                line = match.group(1) + "seqnum=" + str(seqnumStart) + match.group(3)
+            print(line)
+    return seqnumStart
 
 
 def main():
@@ -235,6 +243,7 @@ def main():
     nuclIdStart = 0
     gffIdStart = 0
     gbkIdStart = 0
+    seqnumStart = 0
     for cur in range(1, currentChunk + 1):
         if proteinFile:
             protIdStart = append_fasta_file(workDir.name + "/chunk" + str(cur) + ".faa", protIdStart, proteinFile)
@@ -254,7 +263,7 @@ def main():
             if opts.format == "gff":
                 gffIdStart = print_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart)
             elif opts.format == "sco":
-                print_raw_file(workDir.name + "/chunk" + str(cur) + ".out")
+                seqnumStart = print_raw_file(workDir.name + "/chunk" + str(cur) + ".out", seqnumStart)
             else:
                 gbkIdStart = print_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart)
 
