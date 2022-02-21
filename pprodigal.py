@@ -144,17 +144,29 @@ def print_gff_file(file, startNum):
     return startNum
 
 
-def print_gbk_file(file, startNum):
+def print_gbk_file(file, startNum, seqnumStart):
     pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
+    seqnumpattern = re.compile(r"(.*)seqnum=(\d+)(.*)")
     with open(file, "r") as input:
         for line in input:
-            if line[0] == ' ' and "ID=" in line:
+            line = line.rstrip("\n")
+
+            # renumber DEFINITON line
+            if line[0] == 'D' and "seqnum=" in line:
+                match = re.match(seqnumpattern, line)
+                seqnumStart = seqnumStart + 1
+                line = match.group(1) + "seqnum=" + str(seqnumStart) + match.group(3)
+
+            elif line[0] == ' ' and "ID=" in line:
                 match = re.match(pattern, line)
                 if match and match.group(3) == "1":
                     startNum = startNum + 1
                 line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
+
             print(line)
-    return startNum
+
+    return (startNum, seqnumStart)
+
 
 
 def print_raw_file(file, seqnumStart):
@@ -297,7 +309,7 @@ def main():
             elif opts.format == "sco":
                 seqnumStart = print_raw_file(workDir.name + "/chunk" + str(cur) + ".out", seqnumStart)
             else:
-                gbkIdStart = print_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart)
+                (gbkIdStart, seqnumStart) = print_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, seqnumStart)
 
 
 if __name__== "__main__":
