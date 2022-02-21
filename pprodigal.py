@@ -65,18 +65,30 @@ def append_fasta_file(file, startNum, targetFile):
                 trgt.write(line)
     return startNum
 
-def append_gff_file(file, startNum, targetFile):
+def append_gff_file(file, startNum, seqnumStart, targetFile):
     pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
+    seqnumpattern = re.compile(r"(.*)seqnum=(\d+)(.*)")
     with open(targetFile, "a") as trgt:
         with open(file, "r") as input:
             for line in input:
-                if line[0] != '#' and "ID=" in line:
+                line = line.rstrip("\n")
+                if line[0] == '#' and "seqnum=" in line:
+                    match = re.match(seqnumpattern, line)
+                    seqnumStart = seqnumStart + 1
+                    line = match.group(1) + "seqnum=" + str(seqnumStart) + match.group(3)
+
+                elif line[0] != '#' and "ID=" in line:
                     match = re.match(pattern, line)
                     if match and match.group(3) == "1":
                         startNum = startNum + 1
                     line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
-                trgt.write(line)
-    return startNum
+
+                # print gff header only for first chunk
+                if seqnumStart != 0 and "gff-version" in line:
+                    continue
+
+                trgt.write(line + "\n")
+    return (startNum, seqnumStart)
 
 
 def append_gbk_file(file, startNum, targetFile):
@@ -263,7 +275,7 @@ def main():
 
         if outFile:
             if opts.format == "gff":
-                gffIdStart = append_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart, outFile)
+                (gffIdStart, seqnumStart) = append_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart, seqnumStart, outFile)
             elif opts.format == "sco":
                 seqnumStart = append_raw_file(workDir.name + "/chunk" + str(cur) + ".out", outFile, seqnumStart)
             else:
