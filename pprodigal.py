@@ -8,6 +8,7 @@ import subprocess
 import threading
 import sys
 import re
+import os
 
 def run_prodigal(opts, workDir, currentId, chunkFile):
     cmd = ["prodigal", "-q", "-i", chunkFile.name ]
@@ -217,6 +218,18 @@ def main():
     nuclFile = opts.nucl
     outFile = opts.output
     scoreFile = opts.scorefile
+
+
+    # remove output files
+    if proteinFile and os.path.isfile(proteinFile):
+        os.remove(proteinFile)
+    if nuclFile and os.path.isfile(nuclFile):
+        os.remove(nuclFile)
+    if outFile and os.path.isfile(outFile):
+        os.remove(outFile)
+    if scoreFile and os.path.isfile(scoreFile):
+        os.remove(scoreFile)
+
 
     protIdStart = 0
     nuclIdStart = 0
