@@ -91,18 +91,29 @@ def append_gff_file(file, startNum, seqnumStart, targetFile):
     return (startNum, seqnumStart)
 
 
-def append_gbk_file(file, startNum, targetFile):
+def append_gbk_file(file, startNum, seqnumStart, targetFile):
     pattern = re.compile(r"(.*ID=)(\d+)_(\d+)(.*)")
+    seqnumpattern = re.compile(r"(.*)seqnum=(\d+)(.*)")
     with open(targetFile, "a") as trgt:
         with open(file, "r") as input:
             for line in input:
-                if line[0] == ' ' and "ID=" in line:
+                line = line.rstrip("\n")
+
+                # renumber DEFINITON line
+                if line[0] == 'D' and "seqnum=" in line:
+                    match = re.match(seqnumpattern, line)
+                    seqnumStart = seqnumStart + 1
+                    line = match.group(1) + "seqnum=" + str(seqnumStart) + match.group(3)
+
+                elif line[0] == ' ' and "ID=" in line:
                     match = re.match(pattern, line)
                     if match and match.group(3) == "1":
                         startNum = startNum + 1
                     line = match.group(1) + str(startNum) + "_" + match.group(3) + match.group(4)
-                trgt.write(line)
-    return startNum
+
+                trgt.write(line + "\n")
+
+    return (startNum, seqnumStart)
 
 
 def append_raw_file(file, targetFile, seqnumStart):
@@ -279,7 +290,7 @@ def main():
             elif opts.format == "sco":
                 seqnumStart = append_raw_file(workDir.name + "/chunk" + str(cur) + ".out", outFile, seqnumStart)
             else:
-                gbkIdStart = append_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, outFile)
+                (gbkIdStart, seqnumStart) = append_gbk_file(workDir.name + "/chunk" + str(cur) + ".out", gbkIdStart, seqnumStart, outFile)
         else:
             if opts.format == "gff":
                 gffIdStart = print_gff_file(workDir.name + "/chunk" + str(cur) + ".out", gffIdStart)
