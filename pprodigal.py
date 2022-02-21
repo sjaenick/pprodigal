@@ -127,7 +127,7 @@ def print_gbk_file(file, startNum):
 
 def print_raw_file(file):
     with open(file, "r") as input:
-        trgt.write(input.read())
+        print(input.read())
 
 
 def main():
