@@ -146,6 +146,11 @@ def main():
     argp.add_argument('-C', "--chunksize", type=int, help="number of input sequences to process within a chunk (default: 2000)")
     opts = argp.parse_args()
 
+    # if invoked without arguments, display usage
+    if len(sys.argv) == 1:
+        argp.print_help()
+        exit(0)
+
     tasks = 20
     if opts.tasks is not None:
         if opts.tasks < 1:
