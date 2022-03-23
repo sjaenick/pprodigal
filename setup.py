@@ -27,7 +27,7 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3 :: Only',
         'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: MIT',
+        'License :: OSI Approved :: MIT License',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
         'Environment :: Console',
         'Intended Audience :: Science/Research',
