@@ -10,7 +10,7 @@ setup(
     description='PProdigal: Parallelized gene prediction based on Prodigal.',
     keywords=['bioinformatics', 'gene prediction'],
     long_description=open('README.txt').read(),
-    license='GPLv3',
+    license='MIT',
     author='Sebastian Jaenicke',
     author_email='sebastian.jaenicke@computational.bio.uni-giessen.de',
     url='https://github.com/sjaenick/pprodigal',
