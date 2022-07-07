@@ -14,3 +14,11 @@ that control the parallelization:
 Due to prodigal's self-training phase, chunks should be chosen sufficiently
 large in order to avoid suboptimal results.
 
+Availability:
+ - PyPi: https://pypi.org/project/pprodigal/
+   $ pip install pprodigal
+ - Bioconda: https://github.com/bioconda/bioconda-recipes/tree/master/recipes/pprodigal
+   $ conda install -c conda-forge -c bioconda -c defaults pprodigal
+
+License: MIT
+
