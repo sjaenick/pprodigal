@@ -99,7 +99,7 @@ def append_gbk_file(file, startNum, seqnumStart, targetFile):
             for line in input:
                 line = line.rstrip("\n")
 
-                # renumber DEFINITON line
+                # renumber DEFINITION line
                 if line[0] == 'D' and "seqnum=" in line:
                     match = re.match(seqnumpattern, line)
                     seqnumStart = seqnumStart + 1
@@ -151,7 +151,7 @@ def print_gbk_file(file, startNum, seqnumStart):
         for line in input:
             line = line.rstrip("\n")
 
-            # renumber DEFINITON line
+            # renumber DEFINITION line
             if line[0] == 'D' and "seqnum=" in line:
                 match = re.match(seqnumpattern, line)
                 seqnumStart = seqnumStart + 1
