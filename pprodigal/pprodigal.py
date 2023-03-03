@@ -10,6 +10,11 @@ import sys
 import re
 import os
 
+def ensure_can_read(fname):
+    if not (os.path.exists(fname) and os.path.isfile(fname) and os.access(fname, os.R_OK)):
+        sys.stderr.write(f"Unable to read file {fname}\n")
+        exit(1)
+
 def run_prodigal(opts, workDir, currentId, chunkFile):
     cmd = ["prodigal", "-q", "-i", chunkFile.name ]
 
@@ -237,6 +242,7 @@ def main():
             exit(1)
     else:
         queryFile = opts.input
+        ensure_can_read(queryFile)
 
 
     with open(queryFile, 'r') as fasta:
